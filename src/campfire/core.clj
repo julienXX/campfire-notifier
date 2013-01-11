@@ -17,6 +17,8 @@
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
 
+(def client (c/create-client))
+
 (defn process-text [text]
   (println "text:" text)
   (if (not (nil? text))
@@ -29,13 +31,12 @@
     (process-text text)))
 
 (defn listen-stream [room_id]
-  (with-open [client (c/create-client)]
   (let [uri (str stream_url "/room/" room_id "/live.json")]
     (doseq [campfire-str (c/string
                           (c/stream-seq client :get uri
                                         :auth {:user token :password pass :preemptive true}
                                         :timeout -1))]
-      (parse-message campfire-str)))))
+      (parse-message campfire-str))))
 
 (defn connect-rooms [room_ids]
   (doseq [room_id room_ids]
