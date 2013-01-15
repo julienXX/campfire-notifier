@@ -13,16 +13,21 @@
 (def pass "X")
 (def room_ids (get conf :room_ids))
 (def stream_url "https://streaming.campfirenow.com")
+(def regex (re-pattern (apply str (interpose "|" (get conf :matches)))))
 
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
 
 (def client (c/create-client))
 
+(defn match-text [text]
+  (if (re-seq regex text)
+    (growl "Mention" "Campfire Mention" text)
+  (growl "New" "Campfire" text)))
+
 (defn process-text [text]
-  (println "text:" text)
   (if (not (nil? text))
-    (growl "New" "Message" text)))
+    (match-text text)))
 
 (defn parse-message [s]
   (let [message (j/parse-string s true)

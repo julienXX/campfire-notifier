@@ -1,2 +1,3 @@
 {:token "TOKEN"
-:room_ids [1 2 42]}
+:room_ids [1 2 42]
+:matches ["foo" "bar"]}
