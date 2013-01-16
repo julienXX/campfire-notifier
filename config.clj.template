@@ -1,3 +1,4 @@
-{:token "TOKEN"
+{:organisation "37signals"
+:token "TOKEN"
 :room_ids [1 2 42]
 :matches ["foo" "bar"]}
