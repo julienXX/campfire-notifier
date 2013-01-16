@@ -12,3 +12,8 @@ cp config.clj{.template,}
 edit config.clj to match your token and your rooms
 lein run
 ```
+
+TODO:
+- [ ] Add tests
+- [ ] Add Notification Center support
+- [ ] Display Rooms/Users names in notification
