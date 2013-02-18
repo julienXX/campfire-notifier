@@ -9,10 +9,12 @@
 (def conf (with-open [r (io/reader "config.clj")]
             (read (PushbackReader. r))))
 
+(def organisation (get conf :organisation))
 (def token (get conf :token))
 (def pass "X")
 (def room_ids (get conf :room_ids))
 (def stream_url "https://streaming.campfirenow.com")
+(def users_url (str "https://" organisation ".campfirenow.com"))
 (def regex (re-pattern (apply str (interpose "|" (get conf :matches)))))
 
 (def growl
