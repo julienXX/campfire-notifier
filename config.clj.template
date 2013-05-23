@@ -1,5 +1,7 @@
-{:organisation "37signals"
-:token "TOKEN"
-:room_ids [1 2 42]
-:matches ["foo" "bar"]
-:notifier "growl"}
+{
+ :organisation "37signals"
+ :token "TOKEN"
+ :room_ids [1 2 42]
+ :matches ["foo" "bar"]
+ :notifier "growl" ;; choices are growl or terminal-notifier, the latter being the default
+}
