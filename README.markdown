@@ -15,5 +15,4 @@ lein run
 
 TODO:
 - [ ] Add tests
-- [ ] Add Notification Center support
 - [ ] Display Rooms/Users names in notification
