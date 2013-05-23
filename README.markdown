@@ -1,7 +1,7 @@
 Campfire Notifier
 =================
 
-A Campfire Notifier for OSX which display messages & mentions with Growl.
+A Campfire Notifier for OSX which displays messages & mentions with Growl or Notification Center.
 
 To install:
 ```shell
