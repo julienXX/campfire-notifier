@@ -3,21 +3,21 @@
    [http.async.client :as c]
    [cheshire.core :refer :all :as j]
    [clj-growl.core :as g]
-   [clojure.java.io :as io])
-  (:import [java.io PushbackReader])
+   [clojure.java.io :as io]
+   [clojure.edn])
   (:use [clojure.java.shell :only [sh]]))
 
-(def conf (with-open [r (io/reader "config.clj")]
-            (read (PushbackReader. r))))
 
-(def organisation (get conf :organisation))
-(def token (get conf :token))
+(def conf (clojure.edn/read-string (slurp "config.clj")))
+
+(def organisation (:organisation conf))
+(def token (:token conf))
 (def pass "X")
-(def room_ids (get conf :room_ids))
-(def notifier (get conf :notifier))
+(def room_ids (:room_ids conf))
+(def notifier (:notifier conf))
 (def stream_url "https://streaming.campfirenow.com")
 (def users_url (str "https://" organisation ".campfirenow.com"))
-(def regex (re-pattern (apply str (interpose "|" (get conf :matches)))))
+(def regex (re-pattern (apply str (interpose "|" (:matches conf)))))
 
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
@@ -56,6 +56,7 @@
       (parse-message campfire-str))))
 
 (defn connect-rooms [room_ids]
+  (println "Rooms: " room_ids)
   (doseq [room_id room_ids]
     (println "Connecting room" room_id)
     (future (listen-stream room_id))))
