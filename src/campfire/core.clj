@@ -56,12 +56,10 @@
       (parse-message campfire-str))))
 
 (defn connect-rooms [room_ids]
-  (println "Rooms: " room_ids)
   (doseq [room_id room_ids]
     (println "Connecting room" room_id)
     (future (listen-stream room_id))))
 
 (defn -main []
-  (println "Hello World!")
   (println "Starting Notifier with config:" conf)
   (connect-rooms room_ids))
