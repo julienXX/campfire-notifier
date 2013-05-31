@@ -13,11 +13,12 @@
 (def organisation (:organisation conf))
 (def token (:token conf))
 (def pass "X")
-(def room_ids (:room_ids conf))
+(def room-ids (:room-ids conf))
 (def notifier (:notifier conf))
-(def stream_url "https://streaming.campfirenow.com")
-(def users_url (str "https://" organisation ".campfirenow.com"))
+(def stream-url "https://streaming.campfirenow.com")
+(def campfire-api (str "https://" organisation ".campfirenow.com"))
 (def regex (re-pattern (apply str (interpose "|" (:matches conf)))))
+(def rooms-names #{})
 
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
@@ -43,23 +44,40 @@
 
 (defn parse-message [s]
   (let [message (j/parse-string s true)
-        room (:room_id message)
+        room (:room-id message)
         text (:body message)]
     (process-text text)))
 
-(defn listen-stream [room_id]
-  (let [uri (str stream_url "/room/" room_id "/live.json")]
+(defn parse-room [s]
+  (let [room-json (j/parse-string s true)]
+    (println room-json)
+    (get-in room-json [:room :name])))
+
+(defn listen-stream [room-id]
+  (let [uri (str stream-url "/room/" room-id "/live.json")]
     (doseq [campfire-str (c/string
                           (c/stream-seq client :get uri
                                         :auth {:user token :password pass :preemptive true}
                                         :timeout -1))]
       (parse-message campfire-str))))
 
-(defn connect-rooms [room_ids]
-  (doseq [room_id room_ids]
-    (println "Connecting room" room_id)
-    (future (listen-stream room_id))))
+(defn get-room-name [room-id]
+  (let [response (c/GET client (str campfire-api "/room/" room-id ".json")
+                        :auth {:user token :password pass :preemptive true})]
+    (-> response
+        c/await
+        c/string)))
+
+(defn store-room-name [room-id]
+  (let [room-name (parse-room (get-room-name room-id))]
+    (println room-name)))
+
+(defn connect-rooms [room-ids]
+  (doseq [room-id room-ids]
+    (println "Connecting room" room-id)
+    (store-room-name room-id)
+    (future (listen-stream room-id))))
 
 (defn -main []
   (println "Starting Notifier with config:" conf)
-  (connect-rooms room_ids))
+  (connect-rooms room-ids))
