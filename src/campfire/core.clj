@@ -19,6 +19,7 @@
 (def campfire-api (str "https://" organisation ".campfirenow.com"))
 (def regex (re-pattern (apply str (interpose "|" (:matches conf)))))
 (def rooms-names (atom (hash-map)))
+(def users-names (atom (hash-map)))
 
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
@@ -36,20 +37,44 @@
 (defn get-room-name [room-id]
   (get @rooms-names room-id))
 
-(defn match-text [text]
+(defn get-user-name [user-id]
+  (get @users-names user-id))
+
+(defn match-text [room-id user-id text]
   (if (re-seq regex text)
-    (notify "Mention" "Campfire Mention" text)
-  (notify "New" "Campfire" text)))
+    (notify "Mention" (str (get-room-name room-id) - (get-user-name user-id) text))
+  (notify "New" (str (get-room-name room-id) - (get-user-name user-id) text))))
 
-(defn process-text [text]
+(defn process-text [room-id user-id text]
   (if (not (nil? text))
-    (match-text text)))
+    (match-text room-id text)))
 
-(defn parse-message [s]
+(defn get-user-name-from-api [user-id]
+  (let [response (c/GET client (str campfire-api "/users/" user-id ".json")
+                        :auth {:user token :password pass :preemptive true})]
+    (-> response
+        c/await
+        c/string)))
+
+(defn parse-user [s]
+  (let [user-json (j/parse-string s true)]
+    (println user-json)
+    (get-in user-json [:user :name])))
+
+(defn store-user-name [user-id]
+  (println (str "== " user-id))
+  (if (nil? (get-user-name user-id))
+    (let [user-name (parse-user (get-user-name-from-api user-id))]
+      (swap! users-names assoc user-id user-name))))
+
+(defn parse-message [room-id s]
+  (println s)
   (let [message (j/parse-string s true)
-        room (:room-id message)
-        text (:body message)]
-    (process-text text)))
+        room (:room_id message)
+        text (:body message)
+        user-id (:user_id message)]
+    (store-user-name user-id)
+    (process-text room-id user-id text)))
 
 (defn parse-room [s]
   (let [room-json (j/parse-string s true)]
@@ -61,7 +86,7 @@
                           (c/stream-seq client :get uri
                                         :auth {:user token :password pass :preemptive true}
                                         :timeout -1))]
-      (parse-message campfire-str))))
+      (parse-message room-id campfire-str))))
 
 (defn get-room-name-from-api [room-id]
   (let [response (c/GET client (str campfire-api "/room/" room-id ".json")
