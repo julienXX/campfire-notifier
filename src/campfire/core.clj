@@ -18,7 +18,7 @@
 (def stream-url "https://streaming.campfirenow.com")
 (def campfire-api (str "https://" organisation ".campfirenow.com"))
 (def regex (re-pattern (apply str (interpose "|" (:matches conf)))))
-(def rooms-names #{})
+(def rooms-names (atom (hash-map)))
 
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
@@ -32,6 +32,9 @@
   (terminal-notifier title message))
 
 (def client (c/create-client))
+
+(defn get-room-name [room-id]
+  (get @rooms-names room-id))
 
 (defn match-text [text]
   (if (re-seq regex text)
@@ -50,7 +53,6 @@
 
 (defn parse-room [s]
   (let [room-json (j/parse-string s true)]
-    (println room-json)
     (get-in room-json [:room :name])))
 
 (defn listen-stream [room-id]
@@ -61,7 +63,7 @@
                                         :timeout -1))]
       (parse-message campfire-str))))
 
-(defn get-room-name [room-id]
+(defn get-room-name-from-api [room-id]
   (let [response (c/GET client (str campfire-api "/room/" room-id ".json")
                         :auth {:user token :password pass :preemptive true})]
     (-> response
@@ -69,8 +71,8 @@
         c/string)))
 
 (defn store-room-name [room-id]
-  (let [room-name (parse-room (get-room-name room-id))]
-    (println room-name)))
+  (let [room-name (parse-room (get-room-name-from-api room-id))]
+    (swap! rooms-names assoc room-id room-name)))
 
 (defn connect-rooms [room-ids]
   (doseq [room-id room-ids]
