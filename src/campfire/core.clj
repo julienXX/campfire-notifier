@@ -4,7 +4,8 @@
    [cheshire.core :refer :all :as j]
    [clj-growl.core :as g]
    [clojure.java.io :as io]
-   [clojure.edn])
+   [clojure.edn]
+   [clojure.string :as str])
   (:use [clojure.java.shell :only [sh]]))
 
 
@@ -22,8 +23,11 @@
 (def growl
   (g/make-growler "" "Campfire Notifier" ["Mention" true "New" true]))
 
+(defn escape [message]
+  (str/replace message "[" "\\["))
+
 (defn terminal-notifier [title message]
-  (sh "terminal-notifier" "-message" message "-title" title))
+  (sh "terminal-notifier" "-message" (escape message) "-title" title))
 
 (defn notify [type title message]
   (cond
