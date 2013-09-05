@@ -6,7 +6,10 @@
    [clojure.java.io :as io]
    [clojure.edn]
    [clojure.string :as str])
-  (:use [clojure.java.shell :only [sh]]))
+  (:use
+   [campfire.core]
+   [clojure.java.shell :only [sh]])
+  (:gen-class))
 
 
 (def conf (clojure.edn/read-string (slurp "config.clj")))
