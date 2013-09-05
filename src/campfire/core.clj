@@ -26,9 +26,9 @@
   (sh "terminal-notifier" "-message" message "-title" title))
 
 (defn notify [type title message]
-  (if (= notifier "growl")
-    (growl type title message))
-  (terminal-notifier title message))
+  (cond
+   (= notifier "growl") (growl type title message)
+   (= notifier "terminal-notifier") (terminal-notifier title message)))
 
 (def client (c/create-client))
 
